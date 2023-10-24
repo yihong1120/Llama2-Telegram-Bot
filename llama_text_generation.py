@@ -25,7 +25,7 @@ def chat(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     # Set your telegram token here
-    TOKEN = "6821220940:AAHZGou5OSZpWJiBeXOPzCOHH39BT2T4imc"
+    TOKEN = ""
     bot = Bot(token=TOKEN)
     app = Application.builder().token(TOKEN).build()
 
