@@ -1,47 +1,38 @@
+from telegram import Update, Bot
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
 from llama_cpp import Llama
+import asyncio
 
-def chat_with_llama():
-    # Initialize the Llama model
-    llm = Llama(model_path="./llama-2-7b.Q4_K_M.gguf")
+# Initialize the Llama model
+llm = Llama(model_path="./llama-2-7b.Q4_K_M.gguf")
 
-    print("Welcome to the Llama Chatbot! (type 'exit' to quit)")
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text('Welcome to the Llama Chatbot! Type your message.')
+
+def chat(update: Update, context: CallbackContext) -> None:
+    user_input = update.message.text
+
+    # Set a prompt for the model if you want
+    prompt = f"Q: {user_input} A: "
+
+    # Use the model to generate a response
+    output = llm(prompt, max_tokens=32, echo=True)
     
-    while True:
-        # Get user input
-        user_input = input("You: ")
+    # Extract the response text from the model's output
+    response = output['choices'][0]['text'].replace(prompt, "").strip()
 
-        # Check if the user wants to exit
-        if user_input.lower() in ['exit', 'quit']:
-            print("Goodbye!")
-            break
+    update.message.reply_text(response)
 
-        # Use the model to generate a response directly without "Q:" and "A:"
-        output = llm(user_input, max_tokens=32, echo=True)
-        
-        # Extract the response text from the model's output
-        response = output['choices'][0]['text']
-        
-        print(f"Llama: {response}")
+def main() -> None:
+    # Set your telegram token here
+    TOKEN = ""
+    bot = Bot(token=TOKEN)
+    app = Application.builder().token(TOKEN).build()
 
-# Start the chatbot
-chat_with_llama()
+    text_filter = (filters.TEXT & ~filters.COMMAND)  # 修改了這一行
+    app.add_handler(MessageHandler(text_filter, chat))
 
-# {
-#   "id": "cmpl-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-#   "object": "text_completion",
-#   "created": 1679561337,
-#   "model": "./models/7B/llama-model.gguf",p
-#   "choices": [
-#     {
-#       "text": "Q: Name the planets in the solar system? A: Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune and Pluto.",
-#       "index": 0,
-#       "logprobs": None,
-#       "finish_reason": "stop"
-#     }
-#   ],
-#   "usage": {
-#     "prompt_tokens": 14,
-#     "completion_tokens": 28,
-#     "total_tokens": 42
-#   }
-# }
+    app.run_polling()
+
+if __name__ == '__main__':
+    main()
