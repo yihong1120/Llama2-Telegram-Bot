@@ -8,6 +8,10 @@ import os
 # Initialize the Llama model
 llm = Llama(model_path="./llama-2-7b.Q4_K_M.gguf")
 
+# Load the base context from an external file
+with open("config/francine_context.txt", "r", encoding="utf-8") as file:
+    base_context = file.read().strip()
+
 async def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
     filename = f"user_{user_id}.json"
@@ -36,13 +40,12 @@ async def chat(update: Update, context: CallbackContext) -> None:
     # Add the latest message to the conversation
     convo.append({"user": user_input})
 
-    # Prepare prompt with last 20 messages and the new user input
-    recent_msgs = convo[-20:]
-    prompt = " ".join([msg["user"] if "user" in msg else msg["bot"] for msg in recent_msgs]) + f" Q: {user_input} A: "
-
+    # Prepare the full prompt for the model
+    # prompt = base_context + f"\n\nQ: {user_input} A: "
+    prompt = base_context + f"\n\nUser said: {user_input}"
 
     # Use the model to generate a response
-    output = llm(prompt, max_tokens=32, echo=True)
+    output = llm(prompt, max_tokens=150, echo=True)
     
     # Extract the response text from the model's output
     response = output['choices'][0]['text'].replace(prompt, "").strip()
@@ -56,7 +59,7 @@ async def chat(update: Update, context: CallbackContext) -> None:
 
 def main() -> None:
     # Set your telegram token here
-    TOKEN = ""
+    TOKEN = "6821220940:AAHZGou5OSZpWJiBeXOPzCOHH39BT2T4imc"
     bot = Bot(token=TOKEN)
     app = Application.builder().token(TOKEN).build()
 
