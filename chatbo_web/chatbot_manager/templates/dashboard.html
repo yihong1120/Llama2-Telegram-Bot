@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Dashboard</h2>
+<ul>
+    {% for log in logs %}
+    <li><a href="{% url 'download_log' log.id %}">{{ log.log_file.name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}
