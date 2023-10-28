@@ -90,7 +90,7 @@ def main() -> None:
     setup_logging()
 
     # Set your telegram token here
-    TOKEN = "6821220940:AAHZGou5OSZpWJiBeXOPzCOHH39BT2T4imc"
+    TOKEN = ""
     bot = Bot(token=TOKEN)
     app = Application.builder().token(TOKEN).build()
 
