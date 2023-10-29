@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Chat Records for {{ json_filename }}</h2>
+<table border="1">
+    <thead>
+        <tr>
+            <th>User</th>
+            <th>Bot</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for record in json_content %}
+            {% if record.user %}
+                <tr>
+                    <td>{{ record.user }}</td>
+                    <td></td>
+                </tr>
+            {% endif %}
+            {% if record.bot %}
+                <tr>
+                    <td></td>
+                    <td>{{ record.bot }}</td>
+                </tr>
+            {% endif %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

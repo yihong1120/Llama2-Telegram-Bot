@@ -2,10 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chatbot Manager</title>
+    <!-- 你可以在这里添加其他的 CSS 或 JS 链接 -->
 </head>
 <body>
-    {% block content %}{% endblock %}
+    <header>
+        {% if user.is_authenticated %}
+            <p>Hello, {{ user.username }}!</p>
+        {% else %}
+            <p>Welcome! Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'register' %}">register</a>.</p>
+        {% endif %}
+    </header>
+
+    <main>
+        {% block content %}
+        <!-- 这里的内容会被其他模板填充 -->
+        {% endblock content %}
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Chatbot Manager. All rights reserved.</p>
+    </footer>
 </body>
 </html>
