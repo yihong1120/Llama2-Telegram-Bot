@@ -30,7 +30,7 @@ Integration of the advanced llama2 AI model with Telegram to provide real-time c
 
 Run the script:
 ```bash
-python llama_text_generation.py
+python app.py
 ```
 
 Upon execution, the bot will start listening to incoming messages. Users can start a conversation with the bot on Telegram. The bot will then respond to user messages using the Llama model.
