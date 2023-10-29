@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 LOGIN_REDIRECT_URL = '/chatbot_manager/'
+LOGIN_URL = 'login'
 
 # Application definition
 

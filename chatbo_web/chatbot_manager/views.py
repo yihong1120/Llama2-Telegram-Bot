@@ -3,6 +3,7 @@ from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import views as auth_views
 from django.http import HttpResponse, HttpResponseNotFound, FileResponse
 from .models import ChatLog
 import os, json
@@ -12,7 +13,13 @@ def home(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     else:
-        return redirect('login')
+        return auth_views.LoginView.as_view()(request)
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    else:
+        return render(request, 'login.html')
 
 def logout_view(request):
     # Log out the user.

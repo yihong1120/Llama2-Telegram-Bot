@@ -11,8 +11,6 @@
     <header>
         {% if user.is_authenticated %}
             <p>Hello, {{ user.username }}!</p>
-        {% else %}
-            <p>Welcome! Please <a href="{% url 'login' %}">login</a> or <a href="{% url 'register' %}">register</a>.</p>
         {% endif %}
     </header>
 
