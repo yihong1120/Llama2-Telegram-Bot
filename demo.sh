@@ -30,7 +30,7 @@ fi
 pip install -r requirements.txt
 
 # Execute the Python script
-python llama_text_generation.py
+python app.py
 
 # Execute the backend management web server
 cd chatbo_web
