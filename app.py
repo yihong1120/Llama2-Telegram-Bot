@@ -1,79 +1,18 @@
-import json
 from telegram import Update, Bot
-from telegram.ext import Application, CommandHandler, MessageHandler, filters, CallbackContext
-from llama_cpp import Llama
-import asyncio
-import os
+from telegram.ext import Application, MessageHandler, filters, CallbackContext
 import logging
-from datetime import datetime
-from django.contrib.auth.models import User
-from django.shortcuts import render
-from django.http import HttpResponse
-from django.contrib.auth.decorators import login_required
+import asyncio
 
-# Initialize the Llama model
-llm = Llama(model_path="./llama-2-7b.Q4_K_M.gguf")
+from utils import config_manager, chat_manager, model_manager
 
-# Load the base context from an external file
-with open("config/prompt.txt", "r", encoding="utf-8") as file:
-    base_context = file.read().strip()
-
-# Django views
-@login_required
-def log_download(request):
-    # Logic to download logs
-    log_dir = "logs"
-    log_file = os.path.join(log_dir, datetime.now().strftime('%Y%m%d.log'))
-
-    with open(log_file, 'rb') as log:
-        response = HttpResponse(log.read(), content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename="{log_file}"'
-        return response
-
-@login_required
-def json_download(request, user_id):
-    # Logic to download JSON chat history
-    filename = f"chat_records/user_{user_id}.json"
-    with open(filename, 'r', encoding='utf-8') as json_file:
-        response = HttpResponse(json_file.read(), content_type='application/json')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-
-@login_required
-def chatbot_admin(request):
-    # Logic for the admin page
-    users = User.objects.all()
-    return render(request, 'admin.html', {'users': users})
-
-def setup_logging():
-    """ Set up logging with a new file for each day. """
-    log_dir = "logs"
-    if not os.path.exists(log_dir):
-        os.mkdir(log_dir)
-
-    logging.basicConfig(filename=os.path.join(log_dir, datetime.now().strftime('%Y%m%d.log')),
-                        level=logging.INFO,
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-    # Create a new handler to also print logs to console
-    console = logging.StreamHandler()
-    console.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    console.setFormatter(formatter)
-    logging.getLogger().addHandler(console)
-
-setup_logging()
+# Load the base context
+base_context = config_manager.load_base_context()
 
 async def start(update: Update, context: CallbackContext) -> None:
     user_id = update.message.from_user.id
-    filename = f"chat_records/user_{user_id}.json"
     
     try:
-        # Check if file exists, if not create it with an empty list
-        if not os.path.exists(filename):
-            with open(filename, 'w') as f:
-                json.dump([], f)
-        
+        chat_manager.ensure_chat_file_exists(user_id)
         logging.info(f"User {user_id} started the bot.")
         await update.message.reply_text('Welcome to the Llama Chatbot! Type your message.')
     except Exception as e:
@@ -82,34 +21,19 @@ async def start(update: Update, context: CallbackContext) -> None:
 async def chat(update: Update, context: CallbackContext) -> None:
     user_input = update.message.text
     user_id = update.message.from_user.id
-    filename = f"chat_records/user_{user_id}.json"
 
     try:
-        # Ensure the file exists, if not, create it with an empty list
-        if not os.path.exists(filename):
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump([], f, ensure_ascii=False)
+        convo = chat_manager.load_chat(user_id)
         
-        # Load previous conversations
-        with open(filename, 'r', encoding='utf-8') as f:
-            convo = json.load(f)
-            
         # Add the latest message to the conversation
         convo.append({"user": user_input})
 
-        # Prepare the full prompt for the model
-        prompt = base_context + f"\n\nQ: {user_input} A: "
-
-        # Use the model to generate a response
-        output = llm(prompt, max_tokens=150, echo=True)
+        # Use the model to get a response
+        response = model_manager.get_model_response(base_context, user_input)
         
-        # Extract the response text from the model's output
-        response = output['choices'][0]['text'].replace(prompt, "").strip()
-
         # Add model's response to conversation and save to file
         convo.append({"bot": response})
-        with open(filename, 'w', encoding='utf-8') as f:
-            json.dump(convo, f, ensure_ascii=False)
+        chat_manager.save_chat(user_id, convo)
         
         logging.info(f"User {user_id} said '{user_input}', Bot replied with '{response}'.")
         await update.message.reply_text(response)
@@ -117,8 +41,8 @@ async def chat(update: Update, context: CallbackContext) -> None:
         logging.error(f"Error processing chat for user {user_id} with input '{user_input}': {e}")
 
 def main() -> None:
-    # Ensure we're using a new log file if the day has changed
-    setup_logging()
+    # Set up logging
+    config_manager.setup_logging()
 
     # Set your telegram token here
     TOKEN = ""
