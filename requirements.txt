@@ -1,5 +1,0 @@
-diskcache==5.6.3
-llama_cpp_python==0.2.11
-numpy==1.26.1
-typing_extensions==4.8.0
-pyodbc==5.0.1
