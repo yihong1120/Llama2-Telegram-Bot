@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% load static %}  {# Ensure to load static to make use of CSS #}
+
+{% block head %}
+    {# Inherit from parent template, and also add our chat styles #}
+    {{ block.super }}
+    <!-- Note the change in the path below -->
+    <link rel="stylesheet" href="{% static 'chatbot_manager/css/chat_styles.css' %}">
+{% endblock %}
+
+{% block content %}
+<h2>Chat Records for {{ json_filename }}</h2>
+
+<div class="chat-container">
+    {% for record in json_content %}
+        {% if record.user %}
+            <div class="chat-bubble user-bubble">
+                <p>{{ record.user }}</p>
+            </div>
+        {% endif %}
+        {% if record.bot %}
+            <div class="chat-bubble bot-bubble">
+                <p>{{ record.bot }}</p>
+            </div>
+            <div class="clear"></div> <!-- Clears the float for bot messages -->
+        {% endif %}
+    {% endfor %}
+</div>
+
+{% endblock %}
