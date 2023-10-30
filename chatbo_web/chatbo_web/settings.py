@@ -126,10 +126,7 @@ USE_TZ = True
 # STATIC_URL is used to build the URL of the static files
 STATIC_URL = '/static/'
 
-# Here you add the directories where Django will search for additional static files
-# STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "chatbo_web", "static"),
-# ]
+# Here we add the directories where Django will search for additional static files
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
