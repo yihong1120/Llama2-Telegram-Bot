@@ -1,11 +1,16 @@
 {% extends 'base.html' %}
 
+{% load static %}  {# 加載靜態文件功能 #}
+
 {% block content %}
   <h2>Login</h2>
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Login</button>
-    or <a href="{% url 'register' %}">Register</a>
-</form>
+    or 
+    <button id="registerBtn" data-url="{% url 'register' %}" type="button">Register</button>
+  </form>
+
+  <script src="{% static 'chatbot_manager/javascript/register_redirect.js' %}"></script>
 {% endblock %}
