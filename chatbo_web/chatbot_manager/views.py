@@ -8,26 +8,65 @@ from django.http import HttpResponse, HttpResponseNotFound, FileResponse
 from .models import ChatLog
 import os, json
 import glob
+from django.http import HttpRequest
 
-def home(request):
+def home(request: HttpRequest) -> HttpResponse:
+    """
+    Home view that redirects authenticated users to the dashboard 
+    and unauthenticated users to the login page.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     if request.user.is_authenticated:
         return redirect('dashboard')
     else:
         return auth_views.LoginView.as_view()(request)
 
-def login_view(request):
+def login_view(request: HttpRequest) -> HttpResponse:
+    """
+    Login view that redirects authenticated users to the dashboard 
+    and unauthenticated users to the login page.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     if request.user.is_authenticated:
         return redirect('dashboard')
     else:
         return render(request, 'login.html')
 
-def logout_view(request):
+def logout_view(request: HttpRequest) -> HttpResponse:
+    """
+    Logout view that logs out the user and redirects to the homepage.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     # Log out the user.
     logout(request)
     # Redirect to the homepage.
     return redirect('/')
 
-def register(request):
+def register(request: HttpRequest) -> HttpResponse:
+    """
+    Registration view that allows unauthenticated users to create a new account.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     if request.method == "POST":
         form = UserCreationForm(request.POST)
         if form.is_valid():
@@ -38,15 +77,33 @@ def register(request):
     return render(request, 'register.html', {'form': form})
 
 @login_required
-def profile(request):
+def profile(request: HttpRequest) -> HttpResponse:
+    """
+    Profile view that displays the profile of the logged in user.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     return render(request, 'profile.html')
 
 @login_required
-def dashboard(request):
-    # 獲取所有 log 檔案
+def dashboard(request: HttpRequest) -> HttpResponse:
+    """
+    Dashboard view that displays the dashboard to the logged in user.
+
+    Args:
+        request (HttpRequest): The request object.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
+    # Get all log files
     log_files = [f for f in os.listdir("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/logs") if f.endswith('.log')]
 
-    # 獲取所有 JSON 檔案
+    # Get all JSON files
     json_files = [f for f in os.listdir("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/chat_records") if f.endswith('.json')]
 
     context = {
@@ -56,7 +113,17 @@ def dashboard(request):
     return render(request, 'dashboard.html', context)
 
 @login_required
-def download_log_file(request, log_filename):
+def download_log_file(request: HttpRequest, log_filename: str) -> HttpResponse:
+    """
+    View to download a log file.
+
+    Args:
+        request (HttpRequest): The request object.
+        log_filename (str): The name of the log file to download.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     log_path = os.path.join("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/logs", log_filename)
     if os.path.exists(log_path):
         with open(log_path, 'rb') as file:
@@ -66,7 +133,17 @@ def download_log_file(request, log_filename):
     return HttpResponseNotFound("Log file not found.")
 
 @login_required
-def view_log_file(request, log_filename):
+def view_log_file(request: HttpRequest, log_filename: str) -> HttpResponse:
+    """
+    View to display the content of a log file.
+
+    Args:
+        request (HttpRequest): The request object.
+        log_filename (str): The name of the log file to display.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     log_path = os.path.join("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/logs", log_filename)
     if os.path.exists(log_path):
         with open(log_path, 'r') as file:
@@ -75,7 +152,17 @@ def view_log_file(request, log_filename):
     return HttpResponseNotFound("Log file not found.")
 
 @login_required
-def view_json_file(request, json_filename):
+def view_json_file(request: HttpRequest, json_filename: str) -> HttpResponse:
+    """
+    View to display the content of a JSON file.
+
+    Args:
+        request (HttpRequest): The request object.
+        json_filename (str): The name of the JSON file to display.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
     json_path = os.path.join("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/chat_records", json_filename)
     if os.path.exists(json_path):
         with open(json_path, 'r', encoding='utf-8') as file:
@@ -83,17 +170,26 @@ def view_json_file(request, json_filename):
         return render(request, 'json_file_content.html', {'json_content': json_content})
     return HttpResponseNotFound("JSON file not found.")
 
-
 @login_required
-def download_json_file(request, json_filename):
-    # 指定 JSON 檔案的完整路徑
+def download_json_file(request: HttpRequest, json_filename: str) -> HttpResponse:
+    """
+    View to download a JSON file.
+
+    Args:
+        request (HttpRequest): The request object.
+        json_filename (str): The name of the JSON file to download.
+
+    Returns:
+        HttpResponse: The HTTP response.
+    """
+    # Specify the full path of the JSON file
     json_path = os.path.join("/Users/YiHung/Documents/Side_Projects/Llama2-Telegram-Bot/chat_records", json_filename)
 
-    # 檢查文件是否存在
+    # Check if the file exists
     if os.path.exists(json_path):
-        # 使用 FileResponse 回傳檔案內容
+        # Use FileResponse to return the file content
         response = FileResponse(open(json_path, 'rb'), content_type='application/json')
-        # 設定回傳的檔頭，告訴瀏覽器這是一個要下載的文件
+        # Set the response header to tell the browser this is a file to download
         response['Content-Disposition'] = f'attachment; filename="{json_filename}"'
         return response
     else:
