@@ -13,7 +13,8 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     gnupg \
     python3.11 \
-    python3-pip
+    python3-pip && \
+    rm -rf /var/lib/apt/lists/*
 
 # Add repository and key for Microsoft SQL
 RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
@@ -23,14 +24,15 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
 RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 && \
     ACCEPT_EULA=Y apt-get install -y mssql-tools18 && \
-    apt-get install -y unixodbc-dev
+    apt-get install -y unixodbc-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Add mssql-tools18 to the system PATH
 ENV PATH="$PATH:/opt/mssql-tools18/bin"
 
 # Install Python dependencies
 COPY requirements.txt /app/
-RUN pip install -r /app/requirements.txt
+RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 # Copy your application into the container
 COPY . /app/
